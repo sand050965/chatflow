@@ -1,0 +1,33 @@
+{
+  "name": "endurance",
+  "description": "Test 3: Endurance – sustained load for 30 minutes at 80% of max throughput",
+  "totalMessages": 1000000,
+  "durationMinutes": 15,
+  "targetRatePercent": 80,
+  "clientThreads": 128,
+  "rooms": 20,
+  "users": 100000,
+  "consumerConfig": {
+    "THREAD_COUNT": 20,
+    "DB_BATCH_SIZE": 500,
+    "DB_FLUSH_INTERVAL_MS": 100,
+    "DB_WRITER_THREADS": 8
+  },
+  "monitorFor": [
+    "memory leaks",
+    "connection pool exhaustion",
+    "disk space growth",
+    "performance degradation over time",
+    "DLQ accumulation"
+  ],
+  "metricsToCollect": [
+    "write throughput over time (10s buckets)",
+    "database CPU and memory",
+    "HikariCP active connections",
+    "write latency percentiles (p50, p95, p99)",
+    "queue depth over time",
+    "JVM heap usage"
+  ],
+  "notes": "Run at 80% of the max throughput observed in the stress test. Monitor with watch-db-metrics-local.sh and watch-metrics-local.sh in separate terminals.",
+  "runCommand": "TOTAL_MESSAGES=5000000 MAIN_THREADS=128 ./gradlew :client:run"
+}

@@ -1,0 +1,21 @@
+{
+  "name": "baseline",
+  "description": "Test 1: Baseline – 500,000 messages to completion",
+  "totalMessages": 500000,
+  "clientThreads": 128,
+  "rooms": 20,
+  "users": 100000,
+  "consumerConfig": {
+    "THREAD_COUNT": 20,
+    "DB_BATCH_SIZE": 500,
+    "DB_FLUSH_INTERVAL_MS": 100,
+    "DB_WRITER_THREADS": 8
+  },
+  "metricsToCollect": [
+    "write throughput (messages/sec)",
+    "database CPU and memory",
+    "write latency percentiles (p50, p95, p99)",
+    "queue depth stability"
+  ],
+  "runCommand": "TOTAL_MESSAGES=500000 MAIN_THREADS=128 ./gradlew :client:run"
+}

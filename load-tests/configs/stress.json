@@ -1,0 +1,28 @@
+{
+  "name": "stress",
+  "description": "Test 2: Stress – 1,000,000 messages to completion",
+  "totalMessages": 1000000,
+  "clientThreads": 256,
+  "rooms": 20,
+  "users": 100000,
+  "consumerConfig": {
+    "THREAD_COUNT": 20,
+    "DB_BATCH_SIZE": 1000,
+    "DB_FLUSH_INTERVAL_MS": 100,
+    "DB_WRITER_THREADS": 8
+  },
+  "goals": [
+    "identify bottlenecks",
+    "find breaking points",
+    "document degradation curve"
+  ],
+  "metricsToCollect": [
+    "write throughput (messages/sec)",
+    "database CPU and memory",
+    "write latency percentiles (p50, p95, p99)",
+    "queue depth stability",
+    "DLQ depth",
+    "circuit breaker trips"
+  ],
+  "runCommand": "TOTAL_MESSAGES=1000000 MAIN_THREADS=256 ./gradlew :client:run"
+}

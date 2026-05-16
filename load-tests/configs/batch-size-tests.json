@@ -1,0 +1,47 @@
+{
+  "description": "Batch size and flush interval optimization tests (Part 2 requirement). Run each configuration with 500,000 messages and record throughput, latency, and DB write stats.",
+  "testMessages": 500000,
+  "clientThreads": 128,
+  "consumerThreads": 20,
+  "dbWriterThreads": 8,
+  "tests": [
+    {
+      "id": "batch-100-flush-100",
+      "DB_BATCH_SIZE": 100,
+      "DB_FLUSH_INTERVAL_MS": 100,
+      "notes": "Small batch, fast flush – low latency, higher write overhead"
+    },
+    {
+      "id": "batch-500-flush-200",
+      "DB_BATCH_SIZE": 500,
+      "DB_FLUSH_INTERVAL_MS": 100,
+      "notes": "Default configuration – balanced throughput and latency"
+    },
+    {
+      "id": "batch-1000-flush-500",
+      "DB_BATCH_SIZE": 1000,
+      "DB_FLUSH_INTERVAL_MS": 500,
+      "notes": "Large batch, moderate flush – higher throughput, increased latency"
+    },
+    {
+      "id": "batch-5000-flush-1000",
+      "DB_BATCH_SIZE": 5000,
+      "DB_FLUSH_INTERVAL_MS": 1000,
+      "notes": "Maximum batch size – highest throughput, highest per-message latency"
+    },
+    {
+      "id": "batch-1000-flush-100",
+      "DB_BATCH_SIZE": 1000,
+      "DB_FLUSH_INTERVAL_MS": 100,
+      "notes": "Large batch with aggressive flush – high throughput with tighter latency bound"
+    }
+  ],
+  "runCommandTemplate": "TOTAL_MESSAGES=500000 MAIN_THREADS=128 DB_BATCH_SIZE=<size> DB_FLUSH_INTERVAL_MS=<interval> ./gradlew :client:run",
+  "metricsToRecord": [
+    "write throughput (messages/sec)",
+    "p50/p95/p99 write latency",
+    "DB persisted count",
+    "write queue depth (peak)",
+    "DLQ depth"
+  ]
+}

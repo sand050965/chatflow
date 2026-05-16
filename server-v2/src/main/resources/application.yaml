@@ -1,0 +1,50 @@
+server:
+  url: http://${SERVER_HOST:localhost}:${SERVER_PORT:8080}
+
+consumer:
+  url: http://${CONSUMER_HOST:localhost}:${CONSUMER_PORT:8081}
+
+spring:
+  application:
+    name: server-v2
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  profiles:
+    active: ${APP_ENV:local-rabbit}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:admin}
+    password: ${RABBITMQ_PASSWORD:admin}
+
+rabbitmq:
+  pool:
+    connections: 2              # number of TCP connections in ConnectionPool
+    channels-per-connection: 25 # channels per connection in each ChannelPool
+
+internal:
+  secret: ${INTERNAL_SECRET:secret}
+
+rate:
+  limit:
+    requests-per-second: ${RATE_LIMIT:100}
+
+logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
+    edu.northeastern.chatflow: ${APP_LOG_LEVEL:DEBUG}
+    org.springframework.websocket: ${WEBSOCKET_LOG_LEVEL:DEBUG}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,stats
+  endpoint:
+    health:
+      show-details: always

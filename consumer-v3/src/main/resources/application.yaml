@@ -1,0 +1,69 @@
+server:
+  host: ${SERVER_HOST:localhost}
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: Consumer
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:admin}
+    password: ${RABBITMQ_PASSWORD:admin}
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/chatflow}
+    username: ${DB_USER:admin}
+    password: ${DB_PASSWORD:admin}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+      minimum-idle: ${DB_POOL_MIN_IDLE:5}
+      connection-timeout: ${DB_POOL_TIMEOUT_MS:30000}
+      idle-timeout: ${DB_POOL_IDLE_MS:600000}
+      max-lifetime: ${DB_POOL_MAX_LIFETIME_MS:1800000}
+
+internal:
+  secret: secret
+
+consumer:
+  thread-count: ${THREAD_COUNT:40}
+  batch-size: 20
+  prefetch: 100
+  polling-mode: false
+  poll-interval-ms: 10
+
+db:
+  writer:
+    threads: ${DB_WRITER_THREADS:16}
+    batch-size: ${DB_BATCH_SIZE:1000}
+    flush-interval-ms: ${DB_FLUSH_INTERVAL_MS:500}
+    queue-capacity: ${DB_QUEUE_CAPACITY:50000}
+    offer-timeout-ms: ${DB_QUEUE_OFFER_TIMEOUT_MS:50}
+    max-retries: ${DB_MAX_RETRIES:5}
+    base-backoff-ms: ${DB_BASE_BACKOFF_MS:100}
+    dlq-capacity: ${DB_DLQ_CAPACITY:10000}
+    circuit-failure-threshold: ${DB_CIRCUIT_FAILURE_THRESHOLD:5}
+    circuit-cooldown-ms: ${DB_CIRCUIT_COOLDOWN_MS:30000}
+    circuit-half-open-max-calls: ${DB_CIRCUIT_HALF_OPEN_CALLS:3}
+
+stats:
+  threads: ${STATS_THREADS:1}
+  queue-capacity: ${STATS_QUEUE_CAPACITY:50000}
+
+analytics:
+  refresh-enabled: ${ANALYTICS_REFRESH_ENABLED:true}
+  refresh-interval-ms: ${ANALYTICS_REFRESH_INTERVAL_MS:60000}
+  refresh-initial-delay-ms: ${ANALYTICS_REFRESH_INITIAL_DELAY_MS:30000}
+  room-messages-ttl-ms: ${ANALYTICS_ROOM_TTL_MS:3000}
+  user-history-ttl-ms: ${ANALYTICS_USER_TTL_MS:10000}
+  aggregation-ttl-ms: ${ANALYTICS_AGG_TTL_MS:5000}
+  active-users-ttl-ms: ${ANALYTICS_ACTIVE_TTL_MS:5000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
