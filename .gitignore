@@ -30,7 +30,7 @@
 **/nbproject/private/
 **/nbbuild/
 **/dist/
-!jmeter-tests/**/dist/
+!jmeter-test/**/dist/
 **/nbdist/
 **/.nb-gradle/
 
