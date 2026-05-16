@@ -1,31 +1,32 @@
 # Group ChatFlow — Distributed Chat System
 
-A high-throughput real-time chat system built for CS6650 (Distributed Systems). The architecture is designed for horizontal scalability and optimized analytics via PostgreSQL materialized views, Redis caching, and asynchronous message processing through RabbitMQ.
+A high-throughput real-time chat system built for CS6650 (Distributed Systems). The architecture is designed for
+horizontal scalability and optimized analytics via PostgreSQL materialized views, Redis caching, and asynchronous
+message processing through RabbitMQ.
 
 ## Architecture Overview
 
-```
-Clients (WebSocket)
-        │
-        ▼
-AWS Application Load Balancer (HTTP :80, sticky sessions)
-        │
-   ┌────┴────┐
-   │         │  (round-robin across 4 instances)
-Server-v2 ×4 (Spring Boot, :8080)
-   │    │
-   │    └──── Redis (session state, pub-sub, analytics cache)
-   │
-RabbitMQ (:5672)
-   │
-Consumer-v3 (Spring Boot, :8081)
-   │    │
-   │    └──── Redis (analytics cache)
-   │
-PostgreSQL (:5432)
-   │
-   ├── messages table (indexes: room_time, user_time, user_room_time)
-   └── Materialized views (mv_top_users, mv_top_rooms, mv_messages_per_minute)
+```mermaid
+graph TD
+    C1[WebSocket Client]
+    C2[WebSocket Client]
+    C3[WebSocket Client]
+    ALB["AWS Application Load Balancer\nHTTP :80 · Sticky Sessions"]
+    S1["Server 1\nSpring Boot :8080"]
+    S2["Server 2\nSpring Boot :8080"]
+    S3["Server 3\nSpring Boot :8080"]
+    S4["Server 4\nSpring Boot :8080"]
+    RMQ["RabbitMQ\n:5672"]
+    REDIS["Redis\nPub-Sub · Session · Cache\n:6379"]
+    CON["Consumer\nSpring Boot :8081"]
+    PG["PostgreSQL\nMessages · Materialized Views\n:5432"]
+    C1 & C2 & C3 -->|WebSocket| ALB
+    ALB -->|round - robin| S1 & S2 & S3 & S4
+    S1 & S2 & S3 & S4 <-->|pub - sub / cache| REDIS
+    S1 & S2 & S3 & S4 -->|publish| RMQ
+    RMQ -->|consume| CON
+    CON <-->|analytics cache| REDIS
+    CON -->|batch write| PG
 ```
 
 **Services:**
@@ -42,6 +43,7 @@ PostgreSQL (:5432)
 ## Local Development
 
 ### Prerequisites
+
 - Java 21
 - Gradle
 - Docker & Docker Compose
@@ -55,13 +57,14 @@ cd deployment
 docker-compose up -d
 ```
 
-| Service | URL / Address | Credentials |
-|---|---|---|
-| RabbitMQ Management | http://localhost:15672 | admin / admin |
-| PostgreSQL | localhost:5432 | admin / admin, db: chatflow |
-| Redis | localhost:6379 | — |
+| Service             | URL / Address          | Credentials                 |
+|---------------------|------------------------|-----------------------------|
+| RabbitMQ Management | http://localhost:15672 | admin / admin               |
+| PostgreSQL          | localhost:5432         | admin / admin, db: chatflow |
+| Redis               | localhost:6379         | —                           |
 
 Initialize the database schema and indexes:
+
 ```bash
 cd database
 ./setup.sh
@@ -114,6 +117,7 @@ Results are saved to `client/results/`.
 Metrics API response is saved to `client/results/metrics_api_response.json`.
 
 Load test configs (thread count, message count, room/user distribution) are in `load-tests/configs/`:
+
 - `baseline.json` — 500k messages, 128 threads, 20 rooms, 100k users
 - `stress.json` — 1M messages, 256 threads
 - `batch-size-tests.json` — batch size parameter sweep
@@ -175,20 +179,21 @@ docker-compose down -v
 
 ### Infrastructure
 
-| Instance | Role | Count |
-|---|---|---|
-| Server EC2 | server-v2 on :8080 | 4 |
-| Consumer EC2 | consumer-v3 on :8081 | 1 |
-| PostgreSQL EC2 | PostgreSQL on :5432 | 1 |
-| RabbitMQ EC2 | RabbitMQ on :5672 | 1 |
-| Redis EC2 | Redis on :6379 | 1 |
-| AWS ALB | HTTP :80 → servers :8080, sticky sessions, `/health` check | 1 |
+| Instance       | Role                                                       | Count |
+|----------------|------------------------------------------------------------|-------|
+| Server EC2     | server-v2 on :8080                                         | 4     |
+| Consumer EC2   | consumer-v3 on :8081                                       | 1     |
+| PostgreSQL EC2 | PostgreSQL on :5432                                        | 1     |
+| RabbitMQ EC2   | RabbitMQ on :5672                                          | 1     |
+| Redis EC2      | Redis on :6379                                             | 1     |
+| AWS ALB        | HTTP :80 → servers :8080, sticky sessions, `/health` check | 1     |
 
 ALB DNS: `chat-servers-1288018322.us-west-2.elb.amazonaws.com`
 
 ### Prerequisites
 
 Replace the following placeholders throughout:
+
 - `<path-to-your-pem-key>` — path to your EC2 key file
 - `<Server1-Public-IP>` through `<Server4-Public-IP>` — 4 server instances
 - `<Consumer-Public-IP>` — consumer instance
@@ -213,6 +218,7 @@ ssh -i <path-to-your-pem-key> ubuntu@<Postgres-Public-IP> "docker-compose up pos
 ```
 
 Initialize the database schema:
+
 ```bash
 scp -i <path-to-your-pem-key> database/setup.sh database/schema.sql database/indexes.sql database/materialized_views.sql ubuntu@<Postgres-Public-IP>:~/
 ssh -i <path-to-your-pem-key> ubuntu@<Postgres-Public-IP> "chmod +x setup.sh && ./setup.sh"
@@ -273,11 +279,11 @@ curl http://<Server4-Public-IP>:8080/health
 curl http://<Consumer-Public-IP>:8081/health
 ```
 
-| Service | Connection |
-|---|---|
-| PostgreSQL | `jdbc:postgresql://<Postgres-Public-IP>:5432/chatflow` (admin / admin) |
-| RabbitMQ Management | `http://<RabbitMQ-Public-IP>:15672` (admin / admin) |
-| ALB (WebSocket) | `ws://chat-servers-1288018322.us-west-2.elb.amazonaws.com/chat/{roomId}` |
+| Service             | Connection                                                               |
+|---------------------|--------------------------------------------------------------------------|
+| PostgreSQL          | `jdbc:postgresql://<Postgres-Public-IP>:5432/chatflow` (admin / admin)   |
+| RabbitMQ Management | `http://<RabbitMQ-Public-IP>:15672` (admin / admin)                      |
+| ALB (WebSocket)     | `ws://chat-servers-1288018322.us-west-2.elb.amazonaws.com/chat/{roomId}` |
 
 ---
 
@@ -314,10 +320,10 @@ ssh -i <path-to-your-pem-key> ubuntu@<Redis-Public-IP> "docker-compose down -v"
 
 JMeter test plans and results are in `jmeter-tests/`:
 
-| Folder | Description |
-|---|---|
-| `jmeter-tests/original/` | Baseline and stress tests against the original (unoptimized) architecture |
-| `jmeter-tests/optimized/` | Baseline and stress tests after database and caching optimizations |
+| Folder                    | Description                                                               |
+|---------------------------|---------------------------------------------------------------------------|
+| `jmeter-tests/original/`  | Baseline and stress tests against the original (unoptimized) architecture |
+| `jmeter-tests/optimized/` | Baseline and stress tests after database and caching optimizations        |
 
 Test parameters: 300 threads, 100 iterations/thread, targeting `/chat/{random room 1–20}` via ALB on port 80.
 
@@ -327,15 +333,15 @@ HTML dashboards are available in the respective `*_report-folder/` and `optimize
 
 ## Key Configuration
 
-| Parameter | Default | Location |
-|---|---|---|
-| RabbitMQ connections per server | 2 | `server-v2/application.yaml` |
-| RabbitMQ channels per connection | 25 | `server-v2/application.yaml` |
-| Consumer thread count | 40 | `consumer-v3/application.yaml` |
-| DB writer threads | 16 | `consumer-v3/application.yaml` |
-| DB batch size | 1000 messages | `consumer-v3/application.yaml` |
-| DB flush interval | 500 ms | `consumer-v3/application.yaml` |
-| Analytics refresh interval | 60 s | `consumer-v3/application.yaml` |
-| Circuit breaker failure threshold | 5 failures | `consumer-v3/application.yaml` |
-| Circuit breaker cooldown | 30 s | `consumer-v3/application.yaml` |
-| HikariCP max pool size | 20 | `consumer-v3/application.yaml` |
+| Parameter                         | Default       | Location                       |
+|-----------------------------------|---------------|--------------------------------|
+| RabbitMQ connections per server   | 2             | `server-v2/application.yaml`   |
+| RabbitMQ channels per connection  | 25            | `server-v2/application.yaml`   |
+| Consumer thread count             | 40            | `consumer-v3/application.yaml` |
+| DB writer threads                 | 16            | `consumer-v3/application.yaml` |
+| DB batch size                     | 1000 messages | `consumer-v3/application.yaml` |
+| DB flush interval                 | 500 ms        | `consumer-v3/application.yaml` |
+| Analytics refresh interval        | 60 s          | `consumer-v3/application.yaml` |
+| Circuit breaker failure threshold | 5 failures    | `consumer-v3/application.yaml` |
+| Circuit breaker cooldown          | 30 s          | `consumer-v3/application.yaml` |
+| HikariCP max pool size            | 20            | `consumer-v3/application.yaml` |
