@@ -20,6 +20,7 @@ graph TD
     REDIS["Redis\nPub-Sub · Session · Cache\n:6379"]
     CON["Consumer\nSpring Boot :8081"]
     PG["PostgreSQL\nMessages · Materialized Views\n:5432"]
+
     C1 & C2 & C3 -->|WebSocket| ALB
     ALB -->|round - robin| S1 & S2 & S3 & S4
     S1 & S2 & S3 & S4 <-->|pub - sub / cache| REDIS
@@ -27,6 +28,22 @@ graph TD
     RMQ -->|consume| CON
     CON <-->|analytics cache| REDIS
     CON -->|batch write| PG
+
+    classDef client   fill:#60a5fa,stroke:#2563eb,color:#fff
+    classDef alb      fill:#fb923c,stroke:#ea580c,color:#fff
+    classDef server   fill:#4ade80,stroke:#16a34a,color:#1a1a1a
+    classDef redis    fill:#f87171,stroke:#dc2626,color:#fff
+    classDef queue    fill:#fbbf24,stroke:#d97706,color:#1a1a1a
+    classDef consumer fill:#a78bfa,stroke:#7c3aed,color:#fff
+    classDef db       fill:#38bdf8,stroke:#0284c7,color:#fff
+
+    class C1,C2,C3 client
+    class ALB alb
+    class S1,S2,S3,S4 server
+    class REDIS redis
+    class RMQ queue
+    class CON consumer
+    class PG db
 ```
 
 **Services:**
