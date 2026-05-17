@@ -1,4 +1,4 @@
-# Group ChatFlow — Distributed Chat System
+# Group ChatFlow (Distributed Real-Time Chat System)
 
 A high-throughput real-time chat system built for CS6650 (Distributed Systems). The architecture is designed for
 horizontal scalability and optimized analytics via PostgreSQL materialized views, Redis caching, and asynchronous
